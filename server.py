@@ -4,14 +4,23 @@ from flask import Flask,render_template,request,redirect,flash,url_for
 
 def loadClubs():
     with open('clubs.json') as c:
-         listOfClubs = json.load(c)['clubs']
-         return listOfClubs
+        listOfClubs = json.load(c)['clubs']
+        # Convertir points en entier pour permettre les calculs
+        for club in listOfClubs:
+            club['points'] = int(club['points'])
+        return listOfClubs
 
 
 def loadCompetitions():
     with open('competitions.json') as comps:
-         listOfCompetitions = json.load(comps)['competitions']
-         return listOfCompetitions
+        listOfCompetitions = json.load(comps)['competitions']
+        for competition in listOfCompetitions:
+            # Convertir numberOfPlaces en entier
+            competition['numberOfPlaces'] = int(competition['numberOfPlaces'])
+            # Ajouter la clé reservations si elle n'existe pas
+            if 'reservations' not in competition:
+                competition['reservations'] = {}
+        return listOfCompetitions
 
 
 app = Flask(__name__)
