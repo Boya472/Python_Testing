@@ -16,6 +16,7 @@ def loadCompetitions():
         listOfCompetitions = json.load(comps)['competitions']
         for competition in listOfCompetitions:
             # Convertir numberOfPlaces en entier
+            
             competition['numberOfPlaces'] = int(competition['numberOfPlaces'])
             # Ajouter la clé reservations si elle n'existe pas
             if 'reservations' not in competition:
