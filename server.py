@@ -80,4 +80,8 @@ def purchasePlaces():
 
 @app.route('/logout')
 def logout():
+    """
+    Déconnecte le secrétaire et retourne à la page d'accueil.
+    """
+    flash("Déconnexion réussie.", "success")
     return redirect(url_for('index'))

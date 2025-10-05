@@ -18,7 +18,20 @@
 {% endwith %}
 
 <body>
-        <h2>Welcome, {{club['email']}} </h2><a href="{{url_for('logout')}}">Logout</a>
+          {% set messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <ul>
+      {% for category, message in messages %}
+        <li style="color: {{ 'red' if category == 'error' else 'green' }};">
+          {{ message }}
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <h2>Welcome, {{ club['email'] }}</h2>
+  <a href="{{ url_for('logout') }}">Logout</a>
+  
 
     {% with messages = get_flashed_messages()%}
     {% if messages %}
