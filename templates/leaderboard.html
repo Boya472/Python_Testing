@@ -1,47 +1,25 @@
-<!doctype html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Leaderboard | GUDLFT</title>
-  <style>
-    /* Mini styles provisoires — la branche 8 fera mieux */
-    body { font-family: sans-serif; margin: 1rem; }
-    h1 { margin-bottom: .5rem; }
-    .note { color: #555; margin-bottom: 1rem; }
-    table { border-collapse: collapse; width: 100%; max-width: 480px; }
-    th, td { border: 1px solid #ddd; padding: .5rem .75rem; text-align: left; }
-    th { background: #f7f7f7; }
-    tr:nth-child(even) { background: #fafafa; }
-    .points { text-align: right; font-variant-numeric: tabular-nums; }
-    .links { margin-top: 1rem; }
-  </style>
-</head>
-<body>
-  {% include "_flash.html" %}
+{% extends "base.html" %}
+{% block title %}Leaderboard | GUDLFT{% endblock %}
+{% block content %}
+  <h1 class="h4 mb-3">Tableau public des points</h1>
+  <p class="text-muted">Page publique (lecture seule) — aucun compte requis.</p>
 
-  <h1>Tableau public des points</h1>
-  <div class="note">Page publique (lecture seule) — aucun compte requis.</div>
-
-  <table aria-label="Leaderboard des clubs">
-    <thead>
-      <tr>
-        <th>Club</th>
-        <th class="points">Points</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for club in clubs %}
+  <div class="table-responsive">
+    <table class="table table-striped table-bordered align-middle">
+      <thead class="table-light">
         <tr>
-          <td>{{ club['name'] }}</td>
-          <td class="points">{{ club['points'] }}</td>
+          <th scope="col">Club</th>
+          <th scope="col" class="text-end">Points</th>
         </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-
-  <div class="links">
-    <a href="{{ url_for('index') }}">← Retour à l'accueil</a>
+      </thead>
+      <tbody>
+        {% for club in clubs %}
+          <tr>
+            <td>{{ club['name'] }}</td>
+            <td class="text-end fw-semibold">{{ club['points'] }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
-</body>
-</html>
+{% endblock %}

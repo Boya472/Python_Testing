@@ -1,55 +1,28 @@
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Summary | GUDLFT Registration</title>
-</head>
+{% extends "base.html" %}
+{% block title %}Accueil secrétaire | GUDLFT{% endblock %}
+{% block content %}
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="h4 mb-0">Welcome, {{ club['name'] }}</h2>
+    <span class="badge text-bg-primary">Points : {{ club['points'] }}</span>
+  </div>
 
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    <ul>
-      {% for category, message in messages %}
-        <li style="color: {% if category == 'error' %}red{% else %}green{% endif %};">
-          {{ message }}
-        </li>
-      {% endfor %}
-    </ul>
-  {% endif %}
-{% endwith %}
-
-<body>
-  {% include "_flash.html" %}
-
-  <h2>Welcome, {{ club['name'] }}</h2>
-  <a href="{{ url_for('logout') }}">Logout</a>
-  <p><a href="{{ url_for('leaderboard') }}">📝 Tableau public des points</a></p>
-
-  <p><strong>Points disponibles :</strong> {{ club['points'] }}</p>
-
-  <h3>Liste des compétitions à venir :</h3>
-  <ul>
+  <h3 class="h5 mt-4">Liste des compétitions à venir</h3>
+  <div class="list-group">
     {% for comp in competitions %}
-      <li>
-        <strong>{{ comp['name'] }}</strong><br>
-        Date : {{ comp['date'] }}<br>
-        Places disponibles : {{ comp['numberOfPlaces'] }}<br>
+      <div class="list-group-item">
+        <div class="d-flex w-100 justify-content-between">
+          <h5 class="mb-1">{{ comp['name'] }}</h5>
+          <small class="text-muted">{{ comp['date'] }}</small>
+        </div>
+        <p class="mb-1">Places disponibles : <strong>{{ comp['numberOfPlaces'] }}</strong></p>
         {% if comp['numberOfPlaces']|int > 0 %}
-          <a href="{{ url_for('book', competition=comp['name'], club=club['name']) }}">
+          <a class="btn btn-sm btn-success" href="{{ url_for('book', competition=comp['name'], club=club['name']) }}">
             Réserver des places
           </a>
         {% else %}
-          <span class="text-danger">Complet</span>
+          <span class="badge text-bg-danger">Complet</span>
         {% endif %}
-      </li>
-      <hr>
+      </div>
     {% endfor %}
-  </ul>
-</body>
-</html>
-<style>
-  #flash-messages { list-style:none; padding:0; margin: 1rem 0; }
-  #flash-messages .flash { padding:.5rem .75rem; margin-bottom:.5rem; border-radius:6px; }
-  #flash-messages .success { background:#e6ffed; color:#0a662b; }
-  #flash-messages .error { background:#ffe6e6; color:#8a0000; }
-  #flash-messages .info { background:#eef5ff; color:#0b4a99; }
-</style>
+  </div>
+{% endblock %}

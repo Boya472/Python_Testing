@@ -1,31 +1,25 @@
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <title>Réservation – {{ competition['name'] }} | GUDLFT</title>
-</head>
-<body>
-  {% include "_flash.html" %}
+{% extends "base.html" %}
+{% block title %}Réservation – {{ competition['name'] }} | GUDLFT{% endblock %}
+{% block content %}
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h2 class="h4">{{ competition['name'] }}</h2>
+      <p class="mb-1">Places disponibles : <strong>{{ competition['numberOfPlaces'] }}</strong></p>
+      <p class="text-muted">Points restants ({{ club['name'] }}) : <strong>{{ club['points'] }}</strong></p>
 
-  <h2>{{ competition['name'] }}</h2>
-  <p>Places disponibles : {{ competition['numberOfPlaces'] }}</p>
-  <p>Points restants : {{ club['points'] }}</p>
-
-  <form action="{{ url_for('purchasePlaces') }}" method="post">
-    <input type="hidden" name="club" value="{{ club['name'] }}">
-    <input type="hidden" name="competition" value="{{ competition['name'] }}">
-    <label for="places">Combien de places souhaitez-vous réserver ?</label>
-    <input type="number" name="places" id="places" min="1" max="12" required>
-    <button type="submit">Réserver</button>
-  </form>
-
-  <p><a href="{{ url_for('showSummary') }}">← Retour</a></p>
-</body>
-</html>
-<style>
-  #flash-messages { list-style:none; padding:0; margin: 1rem 0; }
-  #flash-messages .flash { padding:.5rem .75rem; margin-bottom:.5rem; border-radius:6px; }
-  #flash-messages .success { background:#e6ffed; color:#0a662b; }
-  #flash-messages .error { background:#ffe6e6; color:#8a0000; }
-  #flash-messages .info { background:#eef5ff; color:#0b4a99; }
-</style>
-
+      <form action="{{ url_for('purchasePlaces') }}" method="post" class="row gy-2 gx-3">
+        <input type="hidden" name="club" value="{{ club['name'] }}">
+        <input type="hidden" name="competition" value="{{ competition['name'] }}">
+        <div class="col-sm-4">
+          <label for="places" class="form-label">Nombre de places</label>
+          <input type="number" class="form-control" name="places" id="places" min="1" max="12" required>
+          <div class="form-text">Limite : 12 par club et par compétition.</div>
+        </div>
+        <div class="col-auto align-self-end">
+          <button type="submit" class="btn btn-primary">Réserver</button>
+        </div>
+      </form>
+      <a href="{{ url_for('showSummary') }}" class="btn btn-link mt-3">&larr; Retour</a>
+    </div>
+  </div>
+{% endblock %}
