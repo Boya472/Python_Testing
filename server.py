@@ -1,5 +1,6 @@
 import json
 from flask import Flask,render_template,request,redirect,flash,url_for
+from datetime import datetime
 
 
 def loadClubs():
@@ -34,12 +35,11 @@ clubs = loadClubs()
 def index():
     return render_template('index.html')
 
+
 @app.route('/showSummary', methods=['POST'])
 def showSummary():
     """
-    Connexion du secrétaire via son email.
-    - Si email inconnu : on flash un message d'erreur et on retourne à l'index.
-    - Si email connu : on affiche la page welcome avec le club et les compétitions.
+    Connexion du secrétaire via son email + affichage des compétitions à venir.
     """
     email = request.form.get('email', '').strip().lower()
     matches = [club for club in clubs if club['email'].lower() == email]
@@ -49,8 +49,21 @@ def showSummary():
         return redirect(url_for('index'))
 
     club = matches[0]
+
+    # Filtrer uniquement les compétitions à venir
+    today = datetime.now()
+    upcoming_competitions = []
+    for comp in competitions:
+        try:
+            comp_date = datetime.strptime(comp['date'], "%Y-%m-%d %H:%M:%S")
+            if comp_date >= today:
+                upcoming_competitions.append(comp)
+        except Exception:
+            # Si la date est invalide, on garde la compétition pour éviter de la perdre
+            upcoming_competitions.append(comp)
+
     flash(f"Connexion réussie pour {club['name']}.", "success")
-    return render_template('welcome.html', club=club, competitions=competitions)
+    return render_template('welcome.html', club=club, competitions=upcoming_competitions)
 
 
 
