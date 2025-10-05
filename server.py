@@ -78,14 +78,47 @@ def book(competition,club):
         return render_template('welcome.html', club=club, competitions=competitions)
 
 
-@app.route('/purchasePlaces',methods=['POST'])
+@app.route('/purchasePlaces', methods=['POST'])
 def purchasePlaces():
-    competition = [c for c in competitions if c['name'] == request.form['competition']][0]
-    club = [c for c in clubs if c['name'] == request.form['club']][0]
-    placesRequired = int(request.form['places'])
-    competition['numberOfPlaces'] = int(competition['numberOfPlaces'])-placesRequired
-    flash('Great-booking complete!')
+    competition_name = request.form['competition']
+    club_name = request.form['club']
+    places_required = int(request.form['places'])
+
+    # Trouver le club et la compétition correspondants
+    competition = next((c for c in competitions if c['name'] == competition_name), None)
+    club = next((c for c in clubs if c['name'] == club_name), None)
+
+    if not competition or not club:
+        flash("Erreur : club ou compétition introuvable.", "error")
+        return redirect(url_for('showSummary'))
+
+    # Vérifications des contraintes
+    if places_required <= 0:
+        flash("Le nombre de places doit être supérieur à zéro.", "error")
+    elif places_required > 12:
+        flash("Erreur : vous ne pouvez pas réserver plus de 12 places par compétition.", "error")
+    elif competition['numberOfPlaces'] < places_required:
+        flash("Erreur : pas assez de places disponibles pour cette compétition.", "error")
+    elif club['points'] < places_required:
+        flash("Erreur : vous n’avez pas assez de points pour cette réservation.", "error")
+    else:
+        # Tout est OK → on réserve
+        competition['numberOfPlaces'] -= places_required
+        club['points'] -= places_required
+
+        # Enregistrer dans reservations
+        if 'reservations' not in competition:
+            competition['reservations'] = {}
+
+        if club_name in competition['reservations']:
+            competition['reservations'][club_name] += places_required
+        else:
+            competition['reservations'][club_name] = places_required
+
+        flash(f"✅ Réservation réussie : {places_required} place(s) réservée(s) pour {competition_name}.", "success")
+
     return render_template('welcome.html', club=club, competitions=competitions)
+
 
 
 # TODO: Add route for points display
