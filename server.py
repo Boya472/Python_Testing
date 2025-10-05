@@ -34,10 +34,24 @@ clubs = loadClubs()
 def index():
     return render_template('index.html')
 
-@app.route('/showSummary',methods=['POST'])
+@app.route('/showSummary', methods=['POST'])
 def showSummary():
-    club = [club for club in clubs if club['email'] == request.form['email']][0]
-    return render_template('welcome.html',club=club,competitions=competitions)
+    """
+    Connexion du secrétaire via son email.
+    - Si email inconnu : on flash un message d'erreur et on retourne à l'index.
+    - Si email connu : on affiche la page welcome avec le club et les compétitions.
+    """
+    email = request.form.get('email', '').strip().lower()
+    matches = [club for club in clubs if club['email'].lower() == email]
+
+    if not matches:
+        flash("Adresse email inconnue. Vérifiez et réessayez.", "error")
+        return redirect(url_for('index'))
+
+    club = matches[0]
+    flash(f"Connexion réussie pour {club['name']}.", "success")
+    return render_template('welcome.html', club=club, competitions=competitions)
+
 
 
 @app.route('/book/<competition>/<club>')
