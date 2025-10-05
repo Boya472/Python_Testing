@@ -1,21 +1,31 @@
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>Réservation – {{ competition['name'] }} | GUDLFT</title>
+  <meta charset="UTF-8">
+  <title>Réservation – {{ competition['name'] }} | GUDLFT</title>
 </head>
 <body>
-    <h2>{{ competition['name'] }}</h2>
-    <p>Places disponibles : {{ competition['numberOfPlaces'] }}</p>
-    <p>Points restants : {{ club['points'] }}</p>
+  {% include "_flash.html" %}
 
-    <form action="{{ url_for('purchasePlaces') }}" method="post">
-        <input type="hidden" name="club" value="{{ club['name'] }}">
-        <input type="hidden" name="competition" value="{{ competition['name'] }}">
+  <h2>{{ competition['name'] }}</h2>
+  <p>Places disponibles : {{ competition['numberOfPlaces'] }}</p>
+  <p>Points restants : {{ club['points'] }}</p>
 
-        <label for="places">Combien de places souhaitez-vous réserver ?</label>
-        <input type="number" name="places" min="1" max="12" required>
+  <form action="{{ url_for('purchasePlaces') }}" method="post">
+    <input type="hidden" name="club" value="{{ club['name'] }}">
+    <input type="hidden" name="competition" value="{{ competition['name'] }}">
+    <label for="places">Combien de places souhaitez-vous réserver ?</label>
+    <input type="number" name="places" id="places" min="1" max="12" required>
+    <button type="submit">Réserver</button>
+  </form>
 
-        <button type="submit">Réserver</button>
-    </form>
+  <p><a href="{{ url_for('showSummary') }}">← Retour</a></p>
 </body>
 </html>
+<style>
+  #flash-messages { list-style:none; padding:0; margin: 1rem 0; }
+  #flash-messages .flash { padding:.5rem .75rem; margin-bottom:.5rem; border-radius:6px; }
+  #flash-messages .success { background:#e6ffed; color:#0a662b; }
+  #flash-messages .error { background:#ffe6e6; color:#8a0000; }
+  #flash-messages .info { background:#eef5ff; color:#0b4a99; }
+</style>
+

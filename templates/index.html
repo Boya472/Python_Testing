@@ -6,19 +6,9 @@
   <title>GUDLFT Registration</title>
 </head>
 <body>
-  <h1>Welcome to the GUDLFT Registration Portal!</h1>
+  {% include "_flash.html" %}
 
-  {% with messages = get_flashed_messages(with_categories=True) %}
-    {% if messages %}
-      <ul>
-        {% for category, message in messages %}
-          <li style="color: {{ 'red' if category in ['error', 'danger'] else 'green' }};" >
-            {{ message }}
-          </li>
-        {% endfor %}
-      </ul>
-    {% endif %}
-  {% endwith %}
+  <h1>Welcome to the GUDLFT Registration Portal!</h1>
 
   <p>Please enter your secretary email to continue:</p>
   <form action="{{ url_for('showSummary') }}" method="post">
@@ -35,3 +25,10 @@
   </form>
 </body>
 </html>
+<style>
+  #flash-messages { list-style:none; padding:0; margin: 1rem 0; }
+  #flash-messages .flash { padding:.5rem .75rem; margin-bottom:.5rem; border-radius:6px; }
+  #flash-messages .success { background:#e6ffed; color:#0a662b; }
+  #flash-messages .error { background:#ffe6e6; color:#8a0000; }
+  #flash-messages .info { background:#eef5ff; color:#0b4a99; }
+</style>

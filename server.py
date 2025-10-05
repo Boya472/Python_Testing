@@ -45,7 +45,7 @@ def showSummary():
     matches = [club for club in clubs if club['email'].lower() == email]
 
     if not matches:
-        flash("Adresse email inconnue. Vérifiez et réessayez.", "error")
+        err("Adresse email inconnue. Vérifiez et réessayez.")
         return redirect(url_for('index'))
 
     club = matches[0]
@@ -62,10 +62,8 @@ def showSummary():
             # Si la date est invalide, on garde la compétition pour éviter de la perdre
             upcoming_competitions.append(comp)
 
-    flash(f"Connexion réussie pour {club['name']}.", "success")
+    ok(f"Connexion réussie pour {club['name']}.")
     return render_template('welcome.html', club=club, competitions=upcoming_competitions)
-
-
 
 @app.route('/book/<competition>/<club>')
 def book(competition,club):
@@ -82,25 +80,28 @@ def book(competition,club):
 def purchasePlaces():
     competition_name = request.form['competition']
     club_name = request.form['club']
-    places_required = int(request.form['places'])
+    try:
+        places_required = int(request.form['places'])
+    except ValueError:
+        places_required = 0
 
     # Trouver le club et la compétition correspondants
     competition = next((c for c in competitions if c['name'] == competition_name), None)
     club = next((c for c in clubs if c['name'] == club_name), None)
 
     if not competition or not club:
-        flash("Erreur : club ou compétition introuvable.", "error")
-        return redirect(url_for('showSummary'))
+        err("Erreur : club ou compétition introuvable.")
+        return redirect(url_for('index'))
 
     # Vérifications des contraintes
     if places_required <= 0:
-        flash("Le nombre de places doit être supérieur à zéro.", "error")
+        err("Le nombre de places doit être supérieur à zéro.")
     elif places_required > 12:
-        flash("Erreur : vous ne pouvez pas réserver plus de 12 places par compétition.", "error")
+        err("Erreur : vous ne pouvez pas réserver plus de 12 places par compétition.")
     elif competition['numberOfPlaces'] < places_required:
-        flash("Erreur : pas assez de places disponibles pour cette compétition.", "error")
+        err("Erreur : pas assez de places disponibles pour cette compétition.")
     elif club['points'] < places_required:
-        flash("Erreur : vous n’avez pas assez de points pour cette réservation.", "error")
+        err("Erreur : vous n’avez pas assez de points pour cette réservation.")
     else:
         # Tout est OK → on réserve
         competition['numberOfPlaces'] -= places_required
@@ -110,15 +111,12 @@ def purchasePlaces():
         if 'reservations' not in competition:
             competition['reservations'] = {}
 
-        if club_name in competition['reservations']:
-            competition['reservations'][club_name] += places_required
-        else:
-            competition['reservations'][club_name] = places_required
+        already = competition['reservations'].get(club_name, 0)
+        competition['reservations'][club_name] = already + places_required
 
-        flash(f"✅ Réservation réussie : {places_required} place(s) réservée(s) pour {competition_name}.", "success")
+        ok(f"✅ Réservation réussie : {places_required} place(s) réservée(s) pour {competition_name}.")
 
     return render_template('welcome.html', club=club, competitions=competitions)
-
 
 
 # TODO: Add route for points display
@@ -129,5 +127,19 @@ def logout():
     """
     Déconnecte le secrétaire et retourne à la page d'accueil.
     """
-    flash("Déconnexion réussie.", "success")
+    ok("Déconnexion réussie.")
     return redirect(url_for('index'))
+
+
+def ok(msg: str):
+    from flask import flash
+    flash(msg, "success")
+
+def err(msg: str):
+    from flask import flash
+    flash(msg, "error")
+
+def info(msg: str):
+    from flask import flash
+    flash(msg, "info")
+
