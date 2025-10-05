@@ -120,6 +120,12 @@ def purchasePlaces():
 
 
 # TODO: Add route for points display
+@app.route('/leaderboard')
+def leaderboard():
+    # Lecture seule – pas besoin d’être connecté
+    # On trie par points décroissants, puis par nom de club pour la stabilité
+    sorted_clubs = sorted(clubs, key=lambda c: (-int(c.get('points', 0)), c.get('name', '')))
+    return render_template('leaderboard.html', clubs=sorted_clubs)
 
 
 @app.route('/logout')
