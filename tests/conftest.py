@@ -1,19 +1,10 @@
-import os
-import sys
-
-# Ajout du dossier parent (là où se trouve server.py)
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-import server  # ✅ pas .py ici !
-import pytest
 import copy
-
-
-
+import pytest
+import server  
 
 @pytest.fixture
 def app():
-    server.app.config["TESTING"] = True
+    server.app.config.update(TESTING=True)
     return server.app
 
 @pytest.fixture
@@ -22,11 +13,9 @@ def client(app):
 
 @pytest.fixture(autouse=True)
 def reset_state():
-    """
-    Sauvegarde et restaure l'état global (clubs/competitions) pour isoler les tests.
-    """
+    """Restaure clubs/competitions après chaque test (server les charge en mémoire)."""
     clubs_backup = copy.deepcopy(server.clubs)
     comps_backup = copy.deepcopy(server.competitions)
     yield
-    server.clubs[:] = clubs_backup  # restaure in-place
+    server.clubs[:] = clubs_backup
     server.competitions[:] = comps_backup
