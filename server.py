@@ -1,12 +1,14 @@
 import json
-from flask import Flask,render_template,request,redirect,flash,url_for
+from flask import Flask, render_template, request, redirect, flash, url_for, has_request_context
 from datetime import datetime
+from urllib.parse import unquote_plus
 
-
+# -----------------------------
+# Chargement des données JSON
+# -----------------------------
 def loadClubs():
     with open('clubs.json') as c:
         listOfClubs = json.load(c)['clubs']
-        # Convertir points en entier pour permettre les calculs
         for club in listOfClubs:
             club['points'] = int(club['points'])
         return listOfClubs
@@ -16,31 +18,35 @@ def loadCompetitions():
     with open('competitions.json') as comps:
         listOfCompetitions = json.load(comps)['competitions']
         for competition in listOfCompetitions:
-            # Convertir numberOfPlaces en entier
-            
             competition['numberOfPlaces'] = int(competition['numberOfPlaces'])
-            # Ajouter la clé reservations si elle n'existe pas
             if 'reservations' not in competition:
                 competition['reservations'] = {}
         return listOfCompetitions
 
 
+# -----------------------------
+# Initialisation Flask
+# -----------------------------
 app = Flask(__name__)
 app.secret_key = 'something_special'
 
 competitions = loadCompetitions()
 clubs = loadClubs()
 
+
+# -----------------------------
+# Page d'accueil
+# -----------------------------
 @app.route('/')
 def index():
     return render_template('index.html')
 
 
+# -----------------------------
+# Connexion + affichage des compétitions à venir
+# -----------------------------
 @app.route('/showSummary', methods=['POST'])
 def showSummary():
-    """
-    Connexion du secrétaire via son email + affichage des compétitions à venir.
-    """
     email = request.form.get('email', '').strip().lower()
     matches = [club for club in clubs if club['email'].lower() == email]
 
@@ -50,7 +56,6 @@ def showSummary():
 
     club = matches[0]
 
-    # Filtrer uniquement les compétitions à venir
     today = datetime.now()
     upcoming_competitions = []
     for comp in competitions:
@@ -59,33 +64,43 @@ def showSummary():
             if comp_date >= today:
                 upcoming_competitions.append(comp)
         except Exception:
-            # Si la date est invalide, on garde la compétition pour éviter de la perdre
             upcoming_competitions.append(comp)
 
     ok(f"Connexion réussie pour {club['name']}.")
     return render_template('welcome.html', club=club, competitions=upcoming_competitions)
 
+
+# -----------------------------
+# Réservation d'une compétition
+# -----------------------------
 @app.route('/book/<competition>/<club>')
-def book(competition,club):
-    foundClub = [c for c in clubs if c['name'] == club][0]
-    foundCompetition = [c for c in competitions if c['name'] == competition][0]
+def book(competition, club):
+    competition = unquote_plus(competition)
+    club = unquote_plus(club)
+
+    foundClub = [c for c in clubs if c['name'] == club]
+    foundCompetition = [c for c in competitions if c['name'] == competition]
+
     if foundClub and foundCompetition:
-        return render_template('booking.html',club=foundClub,competition=foundCompetition)
+        return render_template('booking.html', club=foundClub[0], competition=foundCompetition[0])
     else:
-        flash("Something went wrong-please try again")
+        flash("Something went wrong - please try again")
         return render_template('welcome.html', club=club, competitions=competitions)
 
 
+# -----------------------------
+# Achat de places
+# -----------------------------
 @app.route('/purchasePlaces', methods=['POST'])
 def purchasePlaces():
-    competition_name = request.form['competition']
-    club_name = request.form['club']
+    competition_name = request.form.get('competition')
+    club_name = request.form.get('club')
+
     try:
-        places_required = int(request.form['places'])
-    except ValueError:
+        places_required = int(request.form.get('places', 0))
+    except (ValueError, TypeError):
         places_required = 0
 
-    # Trouver le club et la compétition correspondants
     competition = next((c for c in competitions if c['name'] == competition_name), None)
     club = next((c for c in clubs if c['name'] == club_name), None)
 
@@ -103,49 +118,54 @@ def purchasePlaces():
     elif club['points'] < places_required:
         err("Erreur : vous n’avez pas assez de points pour cette réservation.")
     else:
-        # Tout est OK → on réserve
-        competition['numberOfPlaces'] -= places_required
-        club['points'] -= places_required
+    # ✅ Réservation autorisée (même si le club dépense tous ses points)
+     competition['numberOfPlaces'] -= places_required
+    club['points'] -= places_required
 
-        # Enregistrer dans reservations
-        if 'reservations' not in competition:
-            competition['reservations'] = {}
+    if 'reservations' not in competition:
+        competition['reservations'] = {}
 
-        already = competition['reservations'].get(club_name, 0)
-        competition['reservations'][club_name] = already + places_required
+    already = competition['reservations'].get(club_name, 0)
+    competition['reservations'][club_name] = already + places_required
 
-        ok(f"✅ Réservation réussie : {places_required} place(s) réservée(s) pour {competition_name}.")
-
+    ok(f"✅ Réservation réussie : {places_required} place(s) réservée(s) pour {competition_name}.")
     return render_template('welcome.html', club=club, competitions=competitions)
 
 
-# TODO: Add route for points display
+# -----------------------------
+# Tableau des scores
+# -----------------------------
 @app.route('/leaderboard')
 def leaderboard():
-    # Lecture seule – pas besoin d’être connecté
-    # On trie par points décroissants, puis par nom de club pour la stabilité
     sorted_clubs = sorted(clubs, key=lambda c: (-int(c.get('points', 0)), c.get('name', '')))
     return render_template('leaderboard.html', clubs=sorted_clubs)
 
 
+# -----------------------------
+# Déconnexion
+# -----------------------------
 @app.route('/logout')
 def logout():
-    """
-    Déconnecte le secrétaire et retourne à la page d'accueil.
-    """
     ok("Déconnexion réussie.")
     return redirect(url_for('index'))
 
 
+# -----------------------------
+# Fonctions de messages (flash)
+# -----------------------------
 def ok(msg: str):
     from flask import flash
-    flash(msg, "success")
+    if has_request_context():
+        flash(msg, "success")
+
 
 def err(msg: str):
     from flask import flash
-    flash(msg, "error")
+    if has_request_context():
+        flash(msg, "error")
+
 
 def info(msg: str):
     from flask import flash
-    flash(msg, "info")
-
+    if has_request_context():
+        flash(msg, "info")
